@@ -9,5 +9,5 @@ This program is currently just a basic setup with allowing users to follow a bas
 
 **Each type has access to types below it, but none have access to types that are equals**
 > 0 - Administrators
->> 1 - Supervisors
+>> 1 - Management(Supervisors)
 >>> 2 - Employees
