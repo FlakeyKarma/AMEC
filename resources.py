@@ -6,26 +6,29 @@ class FUNCTIONS:
     """FUNCTIONS is for, well the functions that are needed to run this quick setup."""
     def __init__(self):
         super(FUNCTIONS, self).__init__()
-        self.version = "v1.0.0"
+        self.version = "v1.1.2"
         self.NmPr = {}
         self.NMlst = []
         self.DIRs = os.listdir("/home")
         self.COMMANDS = {
             #Make group AMEC for each user created, for easier organization
-            "GrpMake":["sudo", "groupadd", "-g", "7779", "AMEC"],
+            "GrpMake":["sudo", "groupadd", "AMEC"],
             #Make users by appending name to end
-            "UsrMake":["sudo", "useradd", "-s", "/bin/bash", "-m", "-g", "AMEC", "USER", "-p", "PASS"],
+            "UsrMake":["sudo", "useradd", "-s", "/bin/bash", "-m", "-g", "AMEC", "USER", "-p", "PASS", "-G", "GROUP"],
             #Create directory COMMUNITY_BOWL for each user to access
             "DirMake":["sudo", "mkdir", "/home/COMMUNITY_BOWL"],
-            #Set permissions for each user
+            #Set permissions for each user upon user directories
             "UsrPLvl":["sudo", "setfacl", "--recursive", "-m", "NAME", "DIR"],
             #Set up soft-link to COMMUNITY_BOWL
-            "SftLink":["sudo", "ln", "-s", "/home/COMMUNITY_BOWL", "DIR"]
+            "SftLink":["sudo", "ln", "-s", "/home/COMMUNITY_BOWL", "DIR"],
+            #Set permissions for each user to be able to access COMMUNITY_BOWL
+            "ComBowl":["sudo", "chgrp", "-R", "-H", "AMEC", "/home/COMMUNITY_BOWL"]
         }
         self.PERM = [0, 1, 2]
         self.NameLen = 0
         self.HELP = '\n\nEnter NAME or \"?\" for list of commands\n\n'
         self.LOG = open('AMEC.log', 'a')
+        self.GROUPS = ['AMEC-Administrator', 'AMEC-Supervisor', 'AMEC-Employee']
 
     def start(self):
         print("._        ._    ._   ._______  ._______")
@@ -38,6 +41,22 @@ class FUNCTIONS:
         print(self.version)
         print("FlakeyKarma")
 
+    def menu(self):
+        chc = ['0', 'e']
+        while(True):
+            #Start
+            self.start()
+            print("[0] Add user")
+            print("[E] Exit")
+            inpt = input("FK> ").lower()
+            if inpt in chc:
+                if inpt == '0':
+                    #Make the names for the object
+                    self.NameMake()
+                if inpt == 'e':
+                    break
+            else:
+                print("Please enter a choice presented")
 
     def finish(self):
         print("Done.\n\n")
@@ -170,6 +189,8 @@ class FUNCTIONS:
                         break
 
                 if NAME == "e":
+                    self.CMD()
+                    self.finish()
                     break
 
                 if NAME != 'b' and NAME != 'l' and NAME != '?' and NAME != 'help':
@@ -177,7 +198,6 @@ class FUNCTIONS:
                         self.NameLen = len(NAME)
                     self.NmPr[NAME] = PERM
 
-                    #self.NAMES.append(NAME)
         except (ValueError, KeyboardInterrupt):
             print("\nLog Saved.\n")
             self.LOG.close()
@@ -185,23 +205,43 @@ class FUNCTIONS:
 
     #Run commands with users created
     def CMD(self):
-        #Create group AMEC, with ID of 7779
-        subprocess.run(self.COMMANDS['GrpMake'])
+        print("Running constructed commands...")
+        #Create group AMEC
+        print("Creating group AMEC...")
+        CMD = self.COMMANDS['GrpMake']
+        subprocess.run(CMD)
+        self.LOG.write(" ".join(CMD) + '\n')
+
+        #Create supplimentary groups
+        for group in self.GROUPS:
+            print("Creating group %s..." % (group))
+            CMD[len(CMD)-1] = group
+            subprocess.run(CMD)
+            self.LOG.write(" ".join(CMD) + '\n')
 
         #Create users
         for user in self.NmPr:
+            print("Creating user %s..." % (user))
             CMD = self.COMMANDS['UsrMake']
-            CMD[len(CMD)-3] = user
-            CMD[len(CMD)-1] = user + "123"
-            self.LOG.write(" ".join(CMD) + '\n')
+            CMD[len(CMD)-5] = user
+            CMD[len(CMD)-3] = user + "123"
+            CMD[len(CMD)-1] = self.GROUPS[self.NmPr[user]]
             subprocess.run(CMD)
+            self.LOG.write(" ".join(CMD) + '\n')
 
         #Make directory COMMUNITY_BOWL for everyone to access
+        print("Making COMMUNITY_BOWL...")
         CMD = self.COMMANDS['DirMake']
         subprocess.run(CMD)
         self.LOG.write(" ".join(CMD) + '\n')
 
-        #Set up permissions
+        #Allow COMMUNITY_BOWL to be accessed by all in AMEC group
+        print("Adjusting permissions to COMMUNITY_BOWL...")
+        CMD = self.COMMANDS['ComBowl']
+        subprocess.run(CMD)
+        self.LOG.write(" ".join(CMD) + '\n')
 
+        #Set up permissions
+        print("Setting permissions for each user...")
         self.setPerms()
         self.LOG.close()
