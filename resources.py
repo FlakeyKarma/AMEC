@@ -6,7 +6,7 @@ class FUNCTIONS:
     """FUNCTIONS is for, well the functions that are needed to run this quick setup."""
     def __init__(self):
         super(FUNCTIONS, self).__init__()
-        self.version = "v1.1.2"
+        self.version = "v1.2.2"
         self.NmPr = {}
         self.NMlst = []
         self.DIRs = os.listdir("/home")
@@ -37,9 +37,9 @@ class FUNCTIONS:
         print("|| \\\\     || \\\\ || \\\\   \\ ___\\   \\ \\")
         print("||__\\\\    ||  \\\\||  \\\\   \\\\_____  \\ \\_____")
         print("||   \\\\   ||   \\`|   \\\\   \\     \\  \\      \\")
-        print("|/    \\|  |/    \\/    \\|   \\_____\\  \______\\ ")
+        print("|/    \\|  |/    \\/    \\|   \\_____\\  \______\\ \n")
         print(self.version)
-        print("FlakeyKarma")
+        print("FlakeyKarma\n\n")
 
     def menu(self):
         chc = ['0', 'e']
